@@ -1,56 +1,156 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import Models.Student;
 import Models.Course;
-import Models.UndergraduateStudent;
+import Util.FileManager;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
 
-        // 1. Get Student info from user
-        System.out.println("Enter student ID:");
-        String id = sc.nextLine();
+        // Create scanner for user input
+        Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Enter student name:");
-        String name = sc.nextLine();
+        // Create file manager
+        FileManager fileManager = new FileManager();
 
-        System.out.println("Enter student email:");
-        String email = sc.nextLine();
+        // Load students and courses from files
+        List<Student> students = fileManager.loadStudents();
+        List<Course> courses = fileManager.loadCourses(students);
 
-        System.out.println("Enter GPA:");
-        double gpa = sc.nextDouble();
-        sc.nextLine();
+        boolean running = true;
 
-        UndergraduateStudent student = new UndergraduateStudent(id, name, email, gpa);
+        // Main menu loop
+        while (running) {
 
-        // 2. Get Course info from user
-        System.out.println("Enter course code:");
-        String courseCode = sc.nextLine();
+            System.out.println("\n===== University Management System =====");
+            System.out.println("1. Add Student");
+            System.out.println("2. Add Course");
+            System.out.println("3. Enroll Student in Course");
+            System.out.println("4. View Students");
+            System.out.println("5. View Courses");
+            System.out.println("6. Save & Exit");
+            System.out.print("Choose option: ");
 
-        System.out.println("Enter course name:");
-        String courseName = sc.nextLine();
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // clear buffer
 
-        System.out.println("Enter credits:");
-        int credits = sc.nextInt();
+            switch (choice) {
 
-        System.out.println("Enter capacity:");
-        int capacity = sc.nextInt();
+                // Add new student
+                case 1:
+                    System.out.print("Enter ID: ");
+                    String id = scanner.nextLine();
 
-        Course course = new Course(courseCode, courseName, credits, capacity);
+                    System.out.print("Enter Name: ");
+                    String name = scanner.nextLine();
 
-        // 3. Enroll student
-        try {
-            course.addStudent(student);
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+                    System.out.print("Enter Email: ");
+                    String email = scanner.nextLine();
+
+                    System.out.print("Enter GPA: ");
+                    double gpa = scanner.nextDouble();
+                    scanner.nextLine();
+
+                    Student student = new Student(id, name, email, gpa);
+                    students.add(student);
+
+                    System.out.println("Student added successfully.");
+                    break;
+
+                // Add new course
+                case 2:
+                    System.out.print("Enter Course Code: ");
+                    String code = scanner.nextLine();
+
+                    System.out.print("Enter Course Name: ");
+                    String courseName = scanner.nextLine();
+
+                    System.out.print("Enter Credits: ");
+                    int credits = scanner.nextInt();
+
+                    System.out.print("Enter Capacity: ");
+                    int capacity = scanner.nextInt();
+                    scanner.nextLine();
+
+                    Course course = new Course(code, courseName, credits, capacity);
+                    courses.add(course);
+
+                    System.out.println("Course added successfully.");
+                    break;
+
+                // Enroll student in course
+                case 3:
+                    System.out.print("Enter Student ID: ");
+                    String studentId = scanner.nextLine();
+
+                    System.out.print("Enter Course Code: ");
+                    String courseCode = scanner.nextLine();
+
+                    Student foundStudent = findStudentById(students, studentId);
+                    Course foundCourse = findCourseByCode(courses, courseCode);
+
+                    if (foundStudent != null && foundCourse != null) {
+
+                        foundStudent.enrollCourse(foundCourse);
+                        foundCourse.getRoster().add(foundStudent);
+
+                        System.out.println("Student enrolled successfully.");
+                    } else {
+                        System.out.println("Student or Course not found.");
+                    }
+
+                    break;
+
+                // View all students
+                case 4:
+                    for (Student s : students) {
+                        System.out.println(s);
+                    }
+                    break;
+
+                // View all courses
+                case 5:
+                    for (Course c : courses) {
+                        System.out.println(c);
+                    }
+                    break;
+
+                // Save and exit
+                case 6:
+                    fileManager.saveStudents(students);
+                    fileManager.saveCourses(courses);
+
+                    System.out.println("Data saved. Exiting system.");
+                    running = false;
+                    break;
+
+                default:
+                    System.out.println("Invalid option.");
+            }
         }
 
-        // 4. Print results
-        System.out.println("Student: " + student);
-        System.out.println("Course: " + course);
+        scanner.close();
+    }
 
-        sc.close();
+    // Find student by ID
+    private static Student findStudentById(List<Student> students, String id) {
+        for (Student s : students) {
+            if (s.getId().equals(id)) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    // Find course by code
+    private static Course findCourseByCode(List<Course> courses, String code) {
+        for (Course c : courses) {
+            if (c.getCourseCode().equals(code)) {
+                return c;
+            }
+        }
+        return null;
     }
 }

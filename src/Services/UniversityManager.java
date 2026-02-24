@@ -8,15 +8,23 @@ import Exception.StudentAlreadyEnrolledException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class UniversityManager {
 
     private List<Student> students;
     private List<Course> courses;
 
+    // Default constructor
     public UniversityManager() {
         this.students = new ArrayList<>();
         this.courses = new ArrayList<>();
+    }
+
+    // Constructor used when loading from file
+    public UniversityManager(List<Student> students, List<Course> courses) {
+        this.students = students;
+        this.courses = courses;
     }
 
     // Register Student
@@ -30,14 +38,14 @@ public class UniversityManager {
     }
 
     // Find Student by ID
-    private Optional<Student> findStudentById(String id) {
+    public Optional<Student> findStudentById(String id) {
         return students.stream()
                 .filter(s -> s.getId().equals(id))
                 .findFirst();
     }
 
     // Find Course by Code
-    private Optional<Course> findCourseByCode(String code) {
+    public Optional<Course> findCourseByCode(String code) {
         return courses.stream()
                 .filter(c -> c.getCourseCode().equals(code))
                 .findFirst();
@@ -53,19 +61,29 @@ public class UniversityManager {
         Course course = findCourseByCode(courseCode)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found"));
 
-        // Check duplicate enrollment
         if (course.getRoster().contains(student)) {
-            throw new StudentAlreadyEnrolledException("Student already enrolled in this course.");
+            throw new StudentAlreadyEnrolledException("Student already enrolled.");
         }
 
-        // Check capacity
         if (course.getRoster().size() >= course.getCapacity()) {
             throw new CourseFullException("Course is full.");
         }
 
-        // Perform enrollment
         course.getRoster().add(student);
         student.enrollCourse(course);
+    }
+
+    // View Student Record
+    public Student getStudentRecord(String studentId) {
+        return findStudentById(studentId)
+                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+    }
+
+    // Generate Dean's List
+    public List<Student> generateDeansList() {
+        return students.stream()
+                .filter(s -> s.getGpa() > 3.5)
+                .collect(Collectors.toList());
     }
 
     // Calculate Average GPA
@@ -76,17 +94,12 @@ public class UniversityManager {
                 .orElse(0.0);
     }
 
-    // Find Top Performing Student
-    public Student getTopStudent() {
-        return students.stream()
-                .max((s1, s2) -> Double.compare(s1.getGpa(), s2.getGpa()))
-                .orElse(null);
-    }
-
+    // Get Students
     public List<Student> getStudents() {
         return students;
     }
 
+    // Get Courses
     public List<Course> getCourses() {
         return courses;
     }
