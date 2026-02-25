@@ -1,6 +1,7 @@
-import Models.Student;
-import Models.Course;
+import Models.*;
+import Services.UniversityManager;
 import Util.FileManager;
+import Exception.*;
 
 import java.util.List;
 import java.util.Scanner;
@@ -9,42 +10,39 @@ public class Main {
 
     public static void main(String[] args) {
 
-        // Create scanner for user input
         Scanner scanner = new Scanner(System.in);
-
-        // Create file manager
         FileManager fileManager = new FileManager();
 
-        // Load students and courses from files
         List<Student> students = fileManager.loadStudents();
         List<Course> courses = fileManager.loadCourses(students);
 
+        UniversityManager manager =
+                new UniversityManager(students, courses);
+
         boolean running = true;
 
-        // Main menu loop
         while (running) {
 
             System.out.println("\n===== University Management System =====");
-            System.out.println("1. Add Student");
-            System.out.println("2. Add Course");
-            System.out.println("3. Enroll Student in Course");
-            System.out.println("4. View Students");
-            System.out.println("5. View Courses");
+            System.out.println("1. Register Student");
+            System.out.println("2. Create Course");
+            System.out.println("3. Enroll Student");
+            System.out.println("4. View Student Record");
+            System.out.println("5. Generate Dean's List");
             System.out.println("6. Save & Exit");
             System.out.print("Choose option: ");
 
             int choice = scanner.nextInt();
-            scanner.nextLine(); // clear buffer
+            scanner.nextLine();
 
             switch (choice) {
 
-                // Add new student
                 case 1:
-                    System.out.print("Enter ID: ");
-                    String id = scanner.nextLine();
-
                     System.out.print("Enter Name: ");
                     String name = scanner.nextLine();
+
+                    System.out.print("Enter ID: ");
+                    String id = scanner.nextLine();
 
                     System.out.print("Enter Email: ");
                     String email = scanner.nextLine();
@@ -53,76 +51,89 @@ public class Main {
                     double gpa = scanner.nextDouble();
                     scanner.nextLine();
 
-                    Student student = new Student(id, name, email, gpa);
-                    students.add(student);
+                    System.out.print("Department: ");
+                    String dept = scanner.nextLine();
 
-                    System.out.println("Student added successfully.");
+                    System.out.print("Type (1=Undergrad, 2=Graduate): ");
+                    int type = scanner.nextInt();
+                    scanner.nextLine();
+
+                    Student student;
+
+                    if (type == 1) {
+                        student = new UndergraduateStudent(
+                                name, id, email, gpa, dept);
+                    } else {
+                        student = new GraduateStudent(
+                                name, id, email, gpa, dept);
+                    }
+
+                    manager.registerStudent(student);
+                    System.out.println("Student registered.");
                     break;
 
-                // Add new course
                 case 2:
-                    System.out.print("Enter Course Code: ");
+                    System.out.print("Course Code: ");
                     String code = scanner.nextLine();
 
-                    System.out.print("Enter Course Name: ");
+                    System.out.print("Course Name: ");
                     String courseName = scanner.nextLine();
 
-                    System.out.print("Enter Credits: ");
+                    System.out.print("Credits: ");
                     int credits = scanner.nextInt();
 
-                    System.out.print("Enter Capacity: ");
+                    System.out.print("Capacity: ");
                     int capacity = scanner.nextInt();
                     scanner.nextLine();
 
-                    Course course = new Course(code, courseName, credits, capacity);
-                    courses.add(course);
+                    Course course = new Course(
+                            code, courseName, credits, capacity);
 
-                    System.out.println("Course added successfully.");
+                    manager.createCourse(course);
+                    System.out.println("Course created.");
                     break;
 
-                // Enroll student in course
                 case 3:
-                    System.out.print("Enter Student ID: ");
-                    String studentId = scanner.nextLine();
+                    System.out.print("Student ID: ");
+                    String sid = scanner.nextLine();
 
-                    System.out.print("Enter Course Code: ");
+                    System.out.print("Course Code: ");
                     String courseCode = scanner.nextLine();
 
-                    Student foundStudent = findStudentById(students, studentId);
-                    Course foundCourse = findCourseByCode(courses, courseCode);
-
-                    if (foundStudent != null && foundCourse != null) {
-
-                        foundStudent.enrollCourse(foundCourse);
-                        foundCourse.getRoster().add(foundStudent);
-
-                        System.out.println("Student enrolled successfully.");
-                    } else {
-                        System.out.println("Student or Course not found.");
+                    try {
+                        manager.enrollStudentInCourse(sid, courseCode);
+                        System.out.println("Enrollment successful.");
+                    } catch (CourseFullException |
+                             StudentAlreadyEnrolledException e) {
+                        System.out.println(e.getMessage());
                     }
-
                     break;
 
-                // View all students
                 case 4:
-                    for (Student s : students) {
+                    System.out.print("Student ID: ");
+                    String recordId = scanner.nextLine();
+
+                    try {
+                        Student s = manager.getStudentRecord(recordId);
                         System.out.println(s);
+                        System.out.println("Tuition: " +
+                                s.calculateTuition());
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
                     }
                     break;
 
-                // View all courses
                 case 5:
-                    for (Course c : courses) {
-                        System.out.println(c);
-                    }
+                    List<Student> deansList =
+                            manager.generateDeansList();
+
+                    deansList.forEach(System.out::println);
                     break;
 
-                // Save and exit
                 case 6:
-                    fileManager.saveStudents(students);
-                    fileManager.saveCourses(courses);
-
-                    System.out.println("Data saved. Exiting system.");
+                    fileManager.saveStudents(manager.students());
+                    fileManager.saveCourses(manager.courses());
+                    System.out.println("Data saved.");
                     running = false;
                     break;
 
@@ -132,25 +143,5 @@ public class Main {
         }
 
         scanner.close();
-    }
-
-    // Find student by ID
-    private static Student findStudentById(List<Student> students, String id) {
-        for (Student s : students) {
-            if (s.getId().equals(id)) {
-                return s;
-            }
-        }
-        return null;
-    }
-
-    // Find course by code
-    private static Course findCourseByCode(List<Course> courses, String code) {
-        for (Course c : courses) {
-            if (c.getCourseCode().equals(code)) {
-                return c;
-            }
-        }
-        return null;
     }
 }

@@ -3,14 +3,17 @@ package Models;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Student extends Person {
+public abstract class Student extends Person {
 
-    private double gpa;
-    private Map<Course, Double> enrolledCourses;
+    private final double gpa;
+    private final String department;
+    private final Map<Course, Double> enrolledCourses;
 
-    public Student(String id, String name, String email, double gpa) {
-        super(id, name, email);
+    public Student(String name, String id, String email,
+                   double gpa, String department) {
+        super(name, id, email);
         this.gpa = gpa;
+        this.department = department;
         this.enrolledCourses = new HashMap<>();
     }
 
@@ -18,8 +21,8 @@ public class Student extends Person {
         return gpa;
     }
 
-    public void setGpa(double gpa) {
-        this.gpa = gpa;
+    public String getDepartment() {
+        return department;
     }
 
     public Map<Course, Double> getEnrolledCourses() {
@@ -30,18 +33,10 @@ public class Student extends Person {
         enrolledCourses.put(course, null);
     }
 
-    public void assignGrade(Course course, double grade) {
-        if (enrolledCourses.containsKey(course)) {
-            enrolledCourses.put(course, grade);
-        }
-    }
-
-    public double calculateTuition(){
-        return 0;
-    }
-
     @Override
     public String toString() {
-        return super.toString() + ", GPA: " + gpa;
+        return super.toString() +
+                ", GPA: " + gpa +
+                ", Department: " + department;
     }
 }

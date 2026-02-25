@@ -1,23 +1,21 @@
 package Models;
 
-public class Instructor extends Person{
-    private String department;
+public class Instructor extends Person {
 
-    public Instructor(String id, String name, String email, String department) {
-        super(id, name, email);
-        this.department = department;
-    }
+    private final String department;
 
-    public String getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(String department) {
+    public Instructor(String name, String id,
+                      String email, String department) {
+        super(name, id, email);
         this.department = department;
     }
 
     @Override
-    public String toString() {
-        return super.toString() + ", Department: " + department;
+    public double calculateTuition() {
+        return 0;
+    }
+
+    public String getDepartment() {
+        return department;
     }
 }
