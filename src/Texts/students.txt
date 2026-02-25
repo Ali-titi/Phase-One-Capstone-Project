@@ -1,2 +1,3 @@
-12,eat,eat@gmail.com,34.0
-Laetitia umwari,11,laetitia@gmail.com,98.0
+UNDERGRAD,2121,alice,alice@gmail.com,65.0,it
+UNDERGRAD,1,ana,ana@gmail.com,43.0,it
+GRAD,titi,121,ti@gmail.com,21.0,it

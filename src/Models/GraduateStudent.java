@@ -1,11 +1,14 @@
 package Models;
 
 public class GraduateStudent extends Student {
+
     private static final double COST_PER_CREDIT = 300;
     private static final double RESEARCH_FEE = 500;
 
-    public GraduateStudent(String id, String name, String email, double gpa) {
-        super(id, name, email, gpa);
+    public GraduateStudent(String name, String id,
+                           String email, double gpa,
+                           String department) {
+        super(name, id, email, gpa, department);
     }
 
     @Override

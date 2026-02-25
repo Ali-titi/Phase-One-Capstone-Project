@@ -1,10 +1,13 @@
 package Models;
 
-public class UndergraduateStudent extends Student{
+public class UndergraduateStudent extends Student {
+
     private static final double FLAT_RATE = 1500;
 
-    public UndergraduateStudent(String id, String name, String email, double gpa) {
-        super(id, name, email, gpa);
+    public UndergraduateStudent(String name, String id,
+                                String email, double gpa,
+                                String department) {
+        super(name, id, email, gpa, department);
     }
 
     @Override
